@@ -1,0 +1,31 @@
+server {
+    listen       80;
+    return 301 https://$host:${PROXY_SSL_PORT}$request_uri;
+}
+server {
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    server_name  127.0.0.1;
+    client_max_body_size 2m;
+
+    ssl_certificate /etc/nginx/ssl/localhost.pem; # サーバ証明書
+    ssl_certificate_key /etc/nginx/ssl/localhost-key.pem; # 秘密鍵
+
+    access_log /dev/stdout;
+    error_log  /dev/stderr;
+
+    root   /var/www/html/${PROJECT_NAME}/public;
+
+    location / {
+        index  index.html index.htm index.php;
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+
+    location ~ \.php$ {
+        fastcgi_pass php:9000;
+        fastcgi_index  index.php;
+        fastcgi_param  SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        include        fastcgi_params;
+    }
+}

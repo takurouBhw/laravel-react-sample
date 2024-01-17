@@ -1,0 +1,84 @@
+version: '3'
+services:
+  proxy:
+    # platform: linux/x86_64
+    build:
+      context: ./proxy
+    container_name: ${APP_NAME}-proxy
+    ports:
+      - ${PROXY_PUBLIC_PORT}:80
+      - ${PROXY_SSL_PORT}:443
+    depends_on:
+      - php
+      - db
+    volumes:
+      - ./proxy/${PROXY_TEMPLATE_NAME}:/etc/nginx/conf.d/default.conf.template
+      - ./proxy/log/:/var/log/nginx/
+      - ${VOLUME_PATH}/:/var/www/html
+      - ./proxy/ssl/:/etc/nginx/ssl/
+    environment:
+      APP_NAME: ${APP_NAME}
+      PROJECT_NAME: ${PROJECT_NAME}
+      PROXY_SSL_PORT: ${PROXY_SSL_PORT}
+    # 環境変数を渡す
+    command: /bin/sh -c "envsubst '$$PROJECT_NAME $$PROXY_SSL_PORT' < /etc/nginx/conf.d/default.conf.template > /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"
+
+  php:
+    # platform: linux/x86_64
+    build:
+      context: ./php
+      args:
+        PROJECT_NAME: ${PROJECT_NAME}
+        NODEJS_VERSION: ${NODEJS_VERSION}
+        LARAVEL_VERSION: ${LARAVEL_VERSION}
+        USER: ${USER}
+        PASSWORD: ${DB_PASSWORD}
+    container_name: ${APP_NAME}-php
+    ports:
+      - ${PHP_SERVE_PORT}:8000
+      - ${VITE_PORT}:${VITE_PORT}
+      - ${REACT_PORT}:3000
+    expose:
+      - "3000"
+      - "8000"
+      - "${VITE_PORT}"
+    depends_on:
+      - db
+    volumes:
+      - ${VOLUME_PATH}/:/var/www/html
+      - ./php/log/:/var/log/php/
+    tty: true
+
+  Phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: ${APP_NAME}-phpmyadmin
+    environment:
+      PMA_ARBITRARY: 1
+      PMA_HOST: db
+      PMA_USER: root
+      PMA_PASSWORD: ${DB_PASSWORD}
+      MEMORY_LIMIT: ${MEMORY_LIMIT}
+      UPLOAD_LIMIT: ${UPLOAD_LIMIT}
+    depends_on:
+      - db
+    ports:
+      - ${PHP_MYADMIN_PUBLIC_PORT}:80
+
+  db:
+    # platform: 'linux/amd64'
+    container_name: ${APP_NAME}-db
+    build:
+      context: ./db
+      dockerfile: Dockerfile
+    volumes:
+      - ./db/data:/var/lib/mysql
+      - ./db/init:/docker-entrypoint-initdb.d
+    expose:
+      - "3306"
+    tty: true
+    environment:
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      TZ: Asia/Tokyo

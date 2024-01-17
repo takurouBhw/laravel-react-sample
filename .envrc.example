@@ -1,0 +1,45 @@
+# docker-compose.yml設定
+
+# Dockerで利用する環境変数 ##
+export NODEJS_VERSION='18.x'
+export LARAVEL_VERSION='10.*'
+export PROJECT_ROOT=$(pwd)
+# プロジェクト名
+export PROJECT_NAME=laravel_react_sample
+# .devcontainerから$PROJECT_NAMEの置き換わるパス
+export PROJECT_NAME_DIR_PATH="${PROJECT_ROOT}/.${PROJECT_NAME}"
+# この環境変数にプロジェクトのマウント先のディレクトリパスを記述する
+# このパスがDockerコンテナのエントリーポイントとなる
+export VOLUME_PATH="${PROJECT_NAME_DIR_PATH}/php/html"
+
+export APP_NAME="$PROJECT_NAME"
+export DB_DATABASE="${PROJECT_NAME}_db"
+export DB_USER=user
+export DB_PASSWORD=password
+export USER=user
+
+# 128Mの形式で指定する
+export MEMORY_LIMIT=128M
+export UPLOAD_LIMIT=64M
+
+# nginxの設定ファイル .devcontainer/proxy配下の設定ファイル名を指定。
+export PROXY_TEMPLATE_NAME="default.conf.template"
+# PhpMyadmin servic 公開側ポート
+export PHP_MYADMIN_PUBLIC_PORT=18080
+# proxy service 公開側ポート
+export PROXY_PUBLIC_PORT=18081
+export PROXY_SSL_PORT=18083
+# php artisan serveのポート docker-compose.ymlのphpサービスで使用する
+export PHP_SERVE_PORT=18082
+# viteのポートを利用する場合はdocker-compose.ymlのphpサービスで使用する
+export VITE_PORT=18084
+# Reactのポート番号を利用する場合はdocker-compose.ymlのphpサービスで使用する
+export REACT_PORT=18085
+
+## gitセットアップスクリプトで利用する環境変数 ##
+# レポジトリ
+export GIT_REPOSITORY=
+# トークン
+export GIT_TOKEN=
+# ユーザー名
+export GIT_USER=

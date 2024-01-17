@@ -1,0 +1,7 @@
+{
+    "blade.format.enable": true,
+    "[blade]": {
+        "editor.defaultFormatter": "onecentlin.laravel-blade",
+        "editor.formatOnSave": true
+    }
+}
